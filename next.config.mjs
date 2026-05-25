@@ -15,9 +15,14 @@ const nextConfig = {
       {
         source: "/dashboard/:path*",
         headers: [
-          { key: "Cross-Origin-Opener-Policy",   value: "same-origin"    },
-          { key: "Cross-Origin-Embedder-Policy",  value: "require-corp"   },
-          { key: "Cross-Origin-Resource-Policy",  value: "cross-origin"   },
+          { key: "Cross-Origin-Opener-Policy",  value: "same-origin"    },
+          /**
+           * "credentialless" active SharedArrayBuffer sans bloquer les ressources
+           * tierces (Firebase Auth, Google Fonts…) qui n'ont pas de header CORP.
+           * Supporté sur Chrome 96+, Firefox 119+, Edge 96+.
+           * "require-corp" était trop strict et cassait Firebase.
+           */
+          { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },
         ],
       },
     ];
