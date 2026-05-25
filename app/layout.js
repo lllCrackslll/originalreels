@@ -1,5 +1,7 @@
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import ThemeScript from "@/components/ThemeScript";
 
 export const metadata = {
   title: "OriginalReels · Multipliez vos Reels. Zéro Shadowban.",
@@ -21,9 +23,14 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="fr">
-      <body className="bg-white antialiased">
-        <AuthProvider>{children}</AuthProvider>
+    <html lang="fr" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
+      <body className="bg-white dark:bg-zinc-950 antialiased">
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

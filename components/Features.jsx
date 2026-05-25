@@ -49,16 +49,16 @@ const FEATURES = [
 
 export default function Features() {
   return (
-    <section id="features" className="py-14 sm:py-24 px-4 sm:px-6 bg-gray-50/50 border-y border-gray-100">
+    <section id="features" className="py-14 sm:py-24 px-4 sm:px-6 bg-gray-50/50 dark:bg-zinc-900/50 border-y border-gray-100 dark:border-zinc-800 transition-colors duration-200">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <span className="inline-block px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-600 text-xs font-medium mb-4">
+          <span className="inline-block px-3 py-1 rounded-full bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-900 text-orange-600 dark:text-orange-400 text-xs font-medium mb-4">
             Comprendre la technologie
           </span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-black tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-black dark:text-white tracking-tight mb-4">
             Pourquoi ça fonctionne vraiment
           </h2>
-          <p className="text-gray-500 max-w-xl mx-auto text-base leading-relaxed">
+          <p className="text-gray-500 dark:text-zinc-400 max-w-xl mx-auto text-base leading-relaxed">
             OriginalReels agit au niveau des fréquences spatiales et temporelles — là où
             les algorithmes de détection d&apos;Instagram opèrent réellement.
           </p>
@@ -68,20 +68,20 @@ export default function Features() {
           {FEATURES.map(({ icon: Icon, title, description, tag }) => (
             <div
               key={title}
-              className="group bg-white rounded-2xl p-6 border border-gray-100 hover:border-orange-200 hover:shadow-sm transition-all duration-300"
+              className="group bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-gray-100 dark:border-zinc-800 hover:border-orange-200 dark:hover:border-orange-800 hover:shadow-sm transition-all duration-300"
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="w-10 h-10 rounded-xl bg-orange-50 group-hover:bg-orange-100 flex items-center justify-center transition-colors duration-300">
+                <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/50 group-hover:bg-orange-100 dark:group-hover:bg-orange-950 flex items-center justify-center transition-colors duration-300">
                   <Icon className="w-5 h-5 text-orange-500" />
                 </div>
-                <span className="text-xs font-medium text-gray-400 bg-gray-50 px-2.5 py-1 rounded-full">
+                <span className="text-xs font-medium text-gray-400 dark:text-zinc-500 bg-gray-50 dark:bg-zinc-800 px-2.5 py-1 rounded-full">
                   {tag}
                 </span>
               </div>
-              <h3 className="text-sm font-semibold text-black mb-2 leading-snug">
+              <h3 className="text-sm font-semibold text-black dark:text-white mb-2 leading-snug">
                 {title}
               </h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{description}</p>
+              <p className="text-sm text-gray-500 dark:text-zinc-400 leading-relaxed">{description}</p>
             </div>
           ))}
         </div>

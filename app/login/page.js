@@ -10,7 +10,9 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
 } from "@/lib/firebase";
-import { Zap, Eye, EyeOff, ArrowRight, Loader2, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2, AlertCircle } from "lucide-react";
+import LogoWordmark from "@/components/LogoWordmark";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const FIREBASE_ERRORS = {
   "auth/user-not-found": "Aucun compte trouvé avec cet email.",
@@ -73,7 +75,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 flex flex-col transition-colors duration-200">
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
@@ -82,18 +84,18 @@ export default function LoginPage() {
       />
 
       <header className="relative z-10 flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 max-w-6xl mx-auto w-full">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-            <Zap className="w-4 h-4 text-white" strokeWidth={2.5} />
-          </div>
-          <span className="text-[17px] font-semibold text-black tracking-tight">OriginalReels</span>
+        <Link href="/">
+          <LogoWordmark className="text-lg" />
         </Link>
-        <p className="text-sm text-gray-400">
-          Pas encore de compte ?{" "}
-          <Link href="/signup" className="text-orange-500 font-medium hover:underline underline-offset-2">
-            S&apos;inscrire
-          </Link>
-        </p>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <p className="text-sm text-gray-400">
+            Pas encore de compte ?{" "}
+            <Link href="/signup" className="text-orange-500 font-medium hover:underline underline-offset-2">
+              S&apos;inscrire
+            </Link>
+          </p>
+        </div>
       </header>
 
       <main className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">

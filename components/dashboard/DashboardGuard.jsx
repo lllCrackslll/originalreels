@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Zap } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import LogoWordmark from "@/components/LogoWordmark";
 
 export default function DashboardGuard({ children }) {
   const { user, loading } = useAuth();
@@ -24,11 +25,9 @@ export default function DashboardGuard({ children }) {
 
   if (loading || grace || !user) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4">
-        <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center">
-          <Zap className="w-5 h-5 text-white" strokeWidth={2.5} />
-        </div>
-        <div className="flex items-center gap-2 text-gray-400">
+      <div className="min-h-screen bg-white dark:bg-zinc-950 flex flex-col items-center justify-center gap-4">
+        <LogoWordmark className="text-xl sm:text-2xl" />
+        <div className="flex items-center gap-2 text-gray-400 dark:text-zinc-500">
           <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
           <span className="text-sm">Chargement…</span>
         </div>
