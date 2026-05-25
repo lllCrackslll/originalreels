@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
-import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import { useRef, useState, useCallback, useEffect } from "react";
+import { fetchFile } from "@ffmpeg/util";
+import { getFFmpeg } from "@/lib/ffmpeg-loader";
 import {
   Upload,
   Video,
@@ -41,32 +41,6 @@ const PROCESSING_OPTIONS = [
   },
 ];
 
-const FFMPEG_CORE_URL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
-
-/**
- * Vérifie que l'environnement est Cross-Origin Isolated.
- * crossOriginIsolated = true  → SharedArrayBuffer dispo → FFmpeg.wasm multi-thread.
- * crossOriginIsolated = false → Pas de COOP/COEP → FFmpeg fonctionnera en single-thread
- *                               ou échouera si SharedArrayBuffer est requis.
- */
-function checkCrossOriginIsolation() {
-  if (typeof window === "undefined") return { ok: false, reason: "SSR" };
-  if (!window.crossOriginIsolated) {
-    console.warn(
-      "[OriginalReels] ⚠️  crossOriginIsolated = false.\n" +
-      "Les headers COOP/COEP ne sont pas actifs sur cette page.\n" +
-      "Vérifiez next.config.mjs et le déploiement Vercel."
-    );
-    return { ok: false, reason: "missing COOP/COEP headers" };
-  }
-  if (typeof SharedArrayBuffer === "undefined") {
-    console.warn("[OriginalReels] ⚠️  SharedArrayBuffer non disponible.");
-    return { ok: false, reason: "SharedArrayBuffer undefined" };
-  }
-  console.info("[OriginalReels] ✅ Cross-Origin Isolated — FFmpeg.wasm prêt.");
-  return { ok: true };
-}
-
 export default function Uploader() {
   const [isDragging, setIsDragging] = useState(false);
   const [videoFile, setVideoFile] = useState(null);
@@ -79,9 +53,13 @@ export default function Uploader() {
   const [progressLabel, setProgressLabel] = useState("");
   const [outputUrl, setOutputUrl] = useState(null);
   const [error, setError] = useState(null);
+  // Pré-chargement en arrière-plan
+  const [preloading, setPreloading] = useState(false);
+  const [preloadProgress, setPreloadProgress] = useState(0);
+  const [preloadLabel, setPreloadLabel] = useState("Préparation du moteur…");
+  const [ffmpegReady, setFfmpegReady] = useState(false);
 
   const fileInputRef = useRef(null);
-  const ffmpegRef = useRef(null);
 
   const handleFile = useCallback((file) => {
     if (!file || !file.type.startsWith("video/")) {
@@ -119,23 +97,38 @@ export default function Uploader() {
     setOptions((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const loadFFmpeg = async () => {
-    if (ffmpegRef.current) return ffmpegRef.current;
-    const isolation = checkCrossOriginIsolation();
-    if (!isolation.ok) {
-      throw new Error(`Environnement non isolé : ${isolation.reason}`);
-    }
-    const ffmpeg = new FFmpeg();
-    ffmpeg.on("progress", ({ progress: p }) => {
-      setProgress(Math.round(p * 80));
+  // Pré-chargement silencieux dès le montage du composant
+  useEffect(() => {
+    let cancelled = false;
+    setPreloading(true);
+
+    getFFmpeg({
+      onPhase: (label) => { if (!cancelled) setPreloadLabel(label); },
+      onProgress: (p) => { if (!cancelled) setPreloadProgress(Math.min(100, Math.round(p))); },
+    })
+      .then(() => {
+        if (!cancelled) {
+          setFfmpegReady(true);
+          setPreloading(false);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error("[OriginalReels] FFmpeg preload:", err);
+          setPreloading(false);
+          setError(err?.message || "Impossible de charger le moteur vidéo.");
+        }
+      });
+
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loadFFmpeg = async () =>
+    getFFmpeg({
+      onPhase: (label) => setProgressLabel(label),
+      onProgress: (p) => setProgress(Math.round((p / 100) * 35)),
     });
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${FFMPEG_CORE_URL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(`${FFMPEG_CORE_URL}/ffmpeg-core.wasm`, "application/wasm"),
-    });
-    ffmpegRef.current = ffmpeg;
-    return ffmpeg;
-  };
 
   const buildFilterChain = () => {
     const filters = [];
@@ -157,11 +150,11 @@ export default function Uploader() {
 
     try {
       const ffmpeg = await loadFFmpeg();
-      setProgress(10);
+      setProgress(37);
       setProgressLabel("Lecture du fichier vidéo…");
 
       await ffmpeg.writeFile("input.mp4", await fetchFile(videoFile));
-      setProgress(20);
+      setProgress(40);
 
       // Construction des arguments FFmpeg
       const args = ["-i", "input.mp4"];
@@ -189,8 +182,8 @@ export default function Uploader() {
         args.push("-metadata", "encoder=");
       }
 
-      // Ré-encodage avec qualité haute
-      args.push("-c:v", "libx264", "-crf", "18", "-preset", "fast");
+      // ultrafast = 3x plus rapide que fast, qualité quasi-identique pour les Reels
+      args.push("-c:v", "libx264", "-crf", "20", "-preset", "ultrafast");
       args.push("-c:a", "aac", "-b:a", "192k");
       args.push("-movflags", "+faststart");
       args.push("output.mp4");
@@ -216,7 +209,7 @@ export default function Uploader() {
       setProgressLabel("Traitement terminé !");
     } catch (err) {
       console.error(err);
-      setError("Une erreur est survenue pendant le traitement. Vérifiez que votre navigateur supporte SharedArrayBuffer.");
+      setError("Une erreur est survenue pendant le traitement. Essayez avec Chrome ou Edge à jour.");
     } finally {
       setProcessing(false);
     }
@@ -286,6 +279,40 @@ export default function Uploader() {
             </div>
 
             <p className="text-xs text-gray-300 mt-2">MP4, MOV, AVI · 500 Mo max</p>
+            <p className="text-xs text-gray-300 mt-0.5">
+              Recommandé : Chrome ou Edge · Safari partiellement supporté
+            </p>
+
+            {/* Indicateur pré-chargement FFmpeg */}
+            {preloading && (
+              <div className="w-full max-w-xs mt-3 space-y-1.5">
+                <div className="flex items-center justify-between text-xs text-gray-400">
+                  <span className="flex items-center gap-1 max-w-[70%] truncate">
+                    <Loader2 className="w-3 h-3 animate-spin text-orange-400 flex-shrink-0" />
+                    {preloadLabel}
+                  </span>
+                  <span className="tabular-nums text-orange-400">{preloadProgress}%</span>
+                </div>
+                <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-orange-300 transition-all duration-300"
+                    style={{ width: `${preloadProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+            {ffmpegReady && (
+              <p className="text-xs text-green-500 mt-2 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                Moteur prêt — traitement instantané
+              </p>
+            )}
+            {error && !videoFile && (
+              <div className="w-full max-w-sm mt-3 flex items-start gap-2 p-3 bg-red-50 border border-red-100 rounded-xl">
+                <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-red-600 text-left">{error}</p>
+              </div>
+            )}
           </div>
         ) : (
           /* Vidéo chargée — affichage aperçu + options */
