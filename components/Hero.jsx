@@ -16,15 +16,8 @@ export default function Hero() {
         }}
       />
 
-      {/* Décoration grille subtile */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.025]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(0,0,0,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,1) 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-        }}
-      />
+      {/* Décoration grille subtile — s'adapte au mode clair / sombre */}
+      <div className="absolute inset-0 pointer-events-none bg-grid-pattern" />
 
       <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
         {/* Pill badge */}

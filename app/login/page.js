@@ -75,7 +75,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 flex flex-col transition-colors duration-200">
+    <div className="relative min-h-screen bg-white dark:bg-zinc-950 flex flex-col transition-colors duration-200">
+      <div className="fixed inset-0 pointer-events-none bg-grid-pattern hidden dark:block" aria-hidden />
       <div
         className="fixed inset-0 pointer-events-none"
         style={{

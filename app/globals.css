@@ -14,14 +14,23 @@
   font-family: "Impact", Haettenschweiler, "Arial Narrow Bold", sans-serif;
 }
 
+@utility bg-grid-pattern {
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #000000;
+  --grid-color: rgba(0, 0, 0, 0.03);
 }
 
 .dark {
   --background: #09090b;
   --foreground: #fafafa;
+  --grid-color: rgba(255, 255, 255, 0.06);
 }
 
 html {
